@@ -19,7 +19,10 @@ on:
 
 jobs:
   build:
+    runs-on: ubuntu-latest
     description: "Scans a Prestashop image for vulnerabilities using Trivy and Dockle"
+    # docker:
+    #   - image: circleci/buildpack-deps:stretch
     parameters:
       image:
         type: string
@@ -27,9 +30,6 @@ jobs:
         type: string
       tag:
         type: string
-    docker:
-      - image: circleci/buildpack-deps:stretch
-    runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
         uses: actions/checkout@v2
@@ -53,6 +53,10 @@ jobs:
             sudo mv trivy /usr/local/bin
      -  name: Clear trivy cache
         run: trivy --clear-cache
+     -  name: Build Prestashop Docker image
+        run: 
+          cd images/<< parameters.version >>/<< parameters.tag >>
+          docker build -t << parameters.image >>:<< parameters.version >>-<< parameters.tag >> --clear-cache .
       - name: Scan Docker image for unkown/low/medium vulnerabilities
         run: trivy --exit-code 0 --severity UNKNOWN,LOW,MEDIUM << parameters.image >>:<< parameters.version >>-<< parameters.tag >>
       - name: Scan Docker image for high/critical vulnerabilities
