@@ -1,0 +1,86 @@
+# https://help.github.com/ja/actions/reference/workflow-syntax-for-github-actions
+name: Scans a Prestashop image for vulnerabilities using Trivy and Dockle
+
+aliases:
+  # Workflow filters
+  - &filter-only-master
+    branches:
+      only: master
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+    - 'images/**'
+  pull_request:
+    branches: [ master ]
+    paths:
+    - 'images/**'
+
+jobs:
+  build:
+    description: "Scans a Prestashop image for vulnerabilities using Trivy and Dockle"
+    parameters:
+      image:
+        type: string
+      version:
+        type: string
+      tag:
+        type: string
+    docker:
+      - image: circleci/buildpack-deps:stretch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+      - setup_remote_docker
+      - restore_cache:
+          key: vulnerability-db
+      - name: Install dockle
+        run: |
+          VERSION=$(curl --silent "https://api.github.com/repos/goodwithtech/dockle/releases/latest" |  grep '"tag_name":' |  sed -E 's/.*"v?([^"]+)".*/\1/' );
+          curl -L -o dockle.deb https://github.com/goodwithtech/dockle/releases/download/v${VERSION}/dockle_${VERSION}_Linux-64bit.deb;
+          sudo dpkg -i dockle.deb && rm dockle.deb
+      - run:
+          name: Install trivy
+          command: |
+            VERSION=$(
+                curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | \
+                grep '"tag_name":' | \
+                sed -E 's/.*"v([^"]+)".*/\1/'
+            )
+            wget https://github.com/aquasecurity/trivy/releases/download/v${VERSION}/trivy_${VERSION}_Linux-64bit.tar.gz
+            tar zxvf trivy_${VERSION}_Linux-64bit.tar.gz
+            sudo mv trivy /usr/local/bin
+     - run:
+          name: Clear trivy cache
+          command: trivy --clear-cache
+      - run:
+          name: Scan Docker image for unkown/low/medium vulnerabilities
+          command: trivy --exit-code 0 --severity UNKNOWN,LOW,MEDIUM << parameters.image >>:<< parameters.version >>-<< parameters.tag >>
+      - run:
+          name: Scan Docker image for high/critical vulnerabilities
+          command: trivy --exit-code 1 --severity HIGH,CRITICAL << parameters.image >>:<< parameters.version >>-<< parameters.tag >>
+      - save_cache:
+          key: vulnerability-db
+          paths:
+          - $HOME/.cache/trivy
+      - name: Check dockle
+        run: |
+          dockle << parameters.image >>:<< parameters.version >>-<< parameters.tag >> | tee -a dockle.out;
+          test $(cat dockle.out | grep -e FATAL -e WARN | wc -l) -eq 0
+
+workflows:
+  nightly:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters: *filter-only-master
+    jobs:
+      - scan-docker-image:
+          matrix:
+            parameters:
+              image: [lucmichalski/Prestashop]
+              version: ["1.7.6.8", "1.7.6.9", "1.7.7.0-rc.1", "1.7.7.0", "nightly"]
+              tag: ["5.6-apache", "5.6-fpm", "7.1-apache", "7.1-fpm", "7.2-apache", "7.2-fpm"]
+
