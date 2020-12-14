@@ -38,7 +38,7 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
     - restore_cache:
-      key: vulnerability-db
+        key: vulnerability-db
     - name: Install dockle
       run: |
         VERSION=$(curl --silent "https://api.github.com/repos/goodwithtech/dockle/releases/latest" |  grep '"tag_name":' |  sed -E 's/.*"v?([^"]+)".*/\1/' );
@@ -65,9 +65,9 @@ jobs:
     - name: Scan Docker image for high/critical vulnerabilities
       run: trivy --exit-code 1 --severity HIGH,CRITICAL << parameters.image >>:<< parameters.version >>-<< parameters.tag >>
     - save_cache:
-      key: vulnerability-db
-      paths:
-      - $HOME/.cache/trivy
+        key: vulnerability-db
+        paths:
+        - $HOME/.cache/trivy
     - name: Check dockle
       run: |
         dockle << parameters.image >>:<< parameters.version >>-<< parameters.tag >> | tee -a dockle.out;
