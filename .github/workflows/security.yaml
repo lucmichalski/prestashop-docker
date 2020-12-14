@@ -6,13 +6,6 @@ jobs:
   build:
     description: "Scans a Prestashop image for vulnerabilities using Trivy and Dockle"
     runs-on: ubuntu-latest
-    parameters:
-      image:
-        type: string
-      version:
-        type: string
-      tag:
-        type: string
     strategy:
       matrix:
         image: [lucmichalski/Prestashop]
