@@ -4,7 +4,6 @@ on: [push, pull_request]
 
 jobs:
   build:
-    description: "Scans a Prestashop image for vulnerabilities using Trivy and Dockle"
     runs-on: ubuntu-latest
     strategy:
       matrix:
