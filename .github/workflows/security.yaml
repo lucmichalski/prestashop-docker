@@ -41,9 +41,8 @@ jobs:
           VERSION=$(curl --silent "https://api.github.com/repos/goodwithtech/dockle/releases/latest" |  grep '"tag_name":' |  sed -E 's/.*"v?([^"]+)".*/\1/' );
           curl -L -o dockle.deb https://github.com/goodwithtech/dockle/releases/download/v${VERSION}/dockle_${VERSION}_Linux-64bit.deb;
           sudo dpkg -i dockle.deb && rm dockle.deb
-      - run:
-          name: Install trivy
-          command: |
+      - name: Install trivy
+        run: |
             VERSION=$(
                 curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | \
                 grep '"tag_name":' | \
@@ -52,15 +51,12 @@ jobs:
             wget https://github.com/aquasecurity/trivy/releases/download/v${VERSION}/trivy_${VERSION}_Linux-64bit.tar.gz
             tar zxvf trivy_${VERSION}_Linux-64bit.tar.gz
             sudo mv trivy /usr/local/bin
-     - run:
-          name: Clear trivy cache
-          command: trivy --clear-cache
-      - run:
-          name: Scan Docker image for unkown/low/medium vulnerabilities
-          command: trivy --exit-code 0 --severity UNKNOWN,LOW,MEDIUM << parameters.image >>:<< parameters.version >>-<< parameters.tag >>
-      - run:
-          name: Scan Docker image for high/critical vulnerabilities
-          command: trivy --exit-code 1 --severity HIGH,CRITICAL << parameters.image >>:<< parameters.version >>-<< parameters.tag >>
+     -  name: Clear trivy cache
+        run: trivy --clear-cache
+      - name: Scan Docker image for unkown/low/medium vulnerabilities
+        run: trivy --exit-code 0 --severity UNKNOWN,LOW,MEDIUM << parameters.image >>:<< parameters.version >>-<< parameters.tag >>
+      - name: Scan Docker image for high/critical vulnerabilities
+        run: trivy --exit-code 1 --severity HIGH,CRITICAL << parameters.image >>:<< parameters.version >>-<< parameters.tag >>
       - save_cache:
           key: vulnerability-db
           paths:
