@@ -1,39 +1,23 @@
-name: "Security"
+name: "Run Docker Security"
 
-on:
-  push:
-    branches: [ trivy ]
-    paths:
-    - 'images/**'
-  pull_request:
-    branches: [ trivy ]
-    paths:
-    - 'images/**'
+on: [push, pull_request]
 
 jobs:
   build:
-    description: "Scans a Prestashop image for vulnerabilities using Trivy and Dockle"
     runs-on: ubuntu-latest
-    parameters:
-      image:
-        type: string
-      version:
-        type: string
-      tag:
-        type: string
     strategy:
       matrix:
-        image: [lucmichalski/Prestashop]
+        image: [lucmichalski/docker-prestashop]
         version: ["1.7.6.8", "1.7.6.9", "1.7.7.0-rc.1", "1.7.7.0", "nightly"]
         tag: ["5.6-apache", "5.6-fpm", "7.1-apache", "7.1-fpm", "7.2-apache", "7.2-fpm"]
     steps:
     - name: Checkout source code
       uses: actions/checkout@v2
-    - name: Login to DockerHub
-      uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    # - name: Login to DockerHub
+    #   uses: docker/login-action@v1
+    #   with:
+    #     username: ${{ secrets.DOCKERHUB_USERNAME }}
+    #     password: ${{ secrets.DOCKERHUB_TOKEN }}
     - name: Install dockle
       run: |
         VERSION=$(curl --silent "https://api.github.com/repos/goodwithtech/dockle/releases/latest" |  grep '"tag_name":' |  sed -E 's/.*"v?([^"]+)".*/\1/' );
@@ -54,7 +38,8 @@ jobs:
     - name: Build Prestashop Docker image
       run: |
         cd images/${{ matrix.version }}/${{ matrix.tag }}
-        docker build -t ${{ matrix.image }}:${{ matrix.version }}-<< ${{ matrix.tag }} --clear-cache .
+        pwd 
+        docker build -t ${{ matrix.image }}:${{ matrix.version }}-<< ${{ matrix.tag }} --no-cache .
     - name: Scan Docker image for unkown/low/medium vulnerabilities
       run: trivy --exit-code 0 --severity UNKNOWN,LOW,MEDIUM ${{ matrix.image }}:${{ matrix.version }}-${{ matrix.tag }}
     - name: Scan Docker image for high/critical vulnerabilities
