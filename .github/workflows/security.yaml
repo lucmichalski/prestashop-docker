@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        image: [lucmichalski/Prestashop]
+        image: [lucmichalski/docker-prestashop]
         version: ["1.7.6.8", "1.7.6.9", "1.7.7.0-rc.1", "1.7.7.0", "nightly"]
         tag: ["5.6-apache", "5.6-fpm", "7.1-apache", "7.1-fpm", "7.2-apache", "7.2-fpm"]
     steps:
@@ -38,6 +38,7 @@ jobs:
     - name: Build Prestashop Docker image
       run: |
         cd images/${{ matrix.version }}/${{ matrix.tag }}
+        pwd 
         docker build -t ${{ matrix.image }}:${{ matrix.version }}-<< ${{ matrix.tag }} --clear-cache .
     - name: Scan Docker image for unkown/low/medium vulnerabilities
       run: trivy --exit-code 0 --severity UNKNOWN,LOW,MEDIUM ${{ matrix.image }}:${{ matrix.version }}-${{ matrix.tag }}
