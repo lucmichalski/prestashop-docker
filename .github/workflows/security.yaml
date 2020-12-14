@@ -52,17 +52,17 @@ jobs:
         tar zxvf trivy_${VERSION}_Linux-64bit.tar.gz
         sudo mv trivy /usr/local/bin
     - name: Clear trivy cache
-      command: trivy --clear-cache
+      run: trivy --clear-cache
     - name: Build Prestashop Docker image
-      command: |
+      run: |
         cd images/<< parameters.version >>/<< parameters.tag >>
         docker build -t << parameters.image >>:<< parameters.version >>-<< parameters.tag >> --clear-cache .
     - name: Scan Docker image for unkown/low/medium vulnerabilities
-      command: trivy --exit-code 0 --severity UNKNOWN,LOW,MEDIUM << parameters.image >>:<< parameters.tag >>
+      run: trivy --exit-code 0 --severity UNKNOWN,LOW,MEDIUM << parameters.image >>:<< parameters.tag >>
     - name: Scan Docker image for high/critical vulnerabilities
-      command: trivy --exit-code 1 --severity HIGH,CRITICAL << parameters.image >>:<< parameters.tag >>
+      run: trivy --exit-code 1 --severity HIGH,CRITICAL << parameters.image >>:<< parameters.tag >>
     - name: Check dockle
-      command: |
+      run: |
         dockle << parameters.image >>:<< parameters.version >>-<< parameters.tag >> | tee -a dockle.out;
         test $(cat dockle.out | grep -e FATAL -e WARN | wc -l) -eq 0
 
