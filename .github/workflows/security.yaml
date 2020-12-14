@@ -32,8 +32,6 @@ jobs:
     - name: Checkout source code
       uses: actions/checkout@v2
     - setup_remote_docker
-    - restore_cache:
-        key: vulnerability-db
     - name: Login to DockerHub
       uses: docker/login-action@v1
       with:
@@ -75,10 +73,6 @@ jobs:
         command: |
           dockle << parameters.image >>:<< parameters.version >>-<< parameters.tag >> | tee -a dockle.out;
           test $(cat dockle.out | grep -e FATAL -e WARN | wc -l) -eq 0
-    - save_cache:
-        key: vulnerability-db
-        paths:
-          - $HOME/.cache/trivy
 
 workflows:
   nightly:
