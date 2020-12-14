@@ -39,46 +39,46 @@ jobs:
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - run:
-        name: Install dockle
+    - run:
+      name: Install dockle
+      command: |
+        VERSION=$(curl --silent "https://api.github.com/repos/goodwithtech/dockle/releases/latest" |  grep '"tag_name":' |  sed -E 's/.*"v?([^"]+)".*/\1/' );
+        curl -L -o dockle.deb https://github.com/goodwithtech/dockle/releases/download/v${VERSION}/dockle_${VERSION}_Linux-64bit.deb;
+        sudo dpkg -i dockle.deb && rm dockle.deb
+    - run:
+        name: Install trivy
         command: |
-          VERSION=$(curl --silent "https://api.github.com/repos/goodwithtech/dockle/releases/latest" |  grep '"tag_name":' |  sed -E 's/.*"v?([^"]+)".*/\1/' );
-          curl -L -o dockle.deb https://github.com/goodwithtech/dockle/releases/download/v${VERSION}/dockle_${VERSION}_Linux-64bit.deb;
-          sudo dpkg -i dockle.deb && rm dockle.deb
-      - run:
-          name: Install trivy
-          command: |
-            VERSION=$(
-                curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | \
-                grep '"tag_name":' | \
-                sed -E 's/.*"v([^"]+)".*/\1/'
-            )
-            wget https://github.com/aquasecurity/trivy/releases/download/v${VERSION}/trivy_${VERSION}_Linux-64bit.tar.gz
-            tar zxvf trivy_${VERSION}_Linux-64bit.tar.gz
-            sudo mv trivy /usr/local/bin
-      - run:
-          name: Clear trivy cache
-          command: trivy --clear-cache
-      - run:
-          name: Build Prestashop Docker image
-          command: |
-            cd images/<< parameters.version >>/<< parameters.tag >>
-            docker build -t << parameters.image >>:<< parameters.version >>-<< parameters.tag >> --clear-cache .
-      - run:
-          name: Scan Docker image for unkown/low/medium vulnerabilities
-          command: trivy --exit-code 0 --severity UNKNOWN,LOW,MEDIUM << parameters.image >>:<< parameters.tag >>
-      - run:
-          name: Scan Docker image for high/critical vulnerabilities
-          command: trivy --exit-code 1 --severity HIGH,CRITICAL << parameters.image >>:<< parameters.tag >>
-      - run:
-          name: Check dockle
-          command: |
-          dockle << parameters.image >>:<< parameters.version >>-<< parameters.tag >> | tee -a dockle.out;
-          test $(cat dockle.out | grep -e FATAL -e WARN | wc -l) -eq 0
-      - save_cache:
-          key: vulnerability-db
-          paths:
-            - $HOME/.cache/trivy
+          VERSION=$(
+              curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | \
+              grep '"tag_name":' | \
+              sed -E 's/.*"v([^"]+)".*/\1/'
+          )
+          wget https://github.com/aquasecurity/trivy/releases/download/v${VERSION}/trivy_${VERSION}_Linux-64bit.tar.gz
+          tar zxvf trivy_${VERSION}_Linux-64bit.tar.gz
+          sudo mv trivy /usr/local/bin
+    - run:
+        name: Clear trivy cache
+        command: trivy --clear-cache
+    - run:
+        name: Build Prestashop Docker image
+        command: |
+          cd images/<< parameters.version >>/<< parameters.tag >>
+          docker build -t << parameters.image >>:<< parameters.version >>-<< parameters.tag >> --clear-cache .
+    - run:
+        name: Scan Docker image for unkown/low/medium vulnerabilities
+        command: trivy --exit-code 0 --severity UNKNOWN,LOW,MEDIUM << parameters.image >>:<< parameters.tag >>
+    - run:
+        name: Scan Docker image for high/critical vulnerabilities
+        command: trivy --exit-code 1 --severity HIGH,CRITICAL << parameters.image >>:<< parameters.tag >>
+    - run:
+        name: Check dockle
+        command: |
+        dockle << parameters.image >>:<< parameters.version >>-<< parameters.tag >> | tee -a dockle.out;
+        test $(cat dockle.out | grep -e FATAL -e WARN | wc -l) -eq 0
+    - save_cache:
+        key: vulnerability-db
+        paths:
+          - $HOME/.cache/trivy
 
 workflows:
   nightly:
