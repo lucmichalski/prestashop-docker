@@ -1,0 +1,69 @@
+name: "Run Docker Security"
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ["lucmichalski/docker-prestashop"]
+        version: ["1.7.6.8", "1.7.6.9", "1.7.7.0-rc.1", "1.7.7.0", "nightly"]
+        tag: ["5.6-apache", "5.6-fpm", "7.1-apache", "7.1-fpm", "7.2-apache", "7.2-fpm"]
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@v2
+    - uses: docker/setup-buildx-action@v1
+      id: buildx
+      with:
+        install: false
+    - name: Login to DockerHub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    - name: Install dockle
+      run: |
+        VERSION=$(curl --silent "https://api.github.com/repos/goodwithtech/dockle/releases/latest" |  grep '"tag_name":' |  sed -E 's/.*"v?([^"]+)".*/\1/' );
+        curl -L -o dockle.deb https://github.com/goodwithtech/dockle/releases/download/v${VERSION}/dockle_${VERSION}_Linux-64bit.deb;
+        sudo dpkg -i dockle.deb && rm dockle.deb
+    - name: Install trivy
+      run: |
+        VERSION=$(
+            curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | \
+            grep '"tag_name":' | \
+            sed -E 's/.*"v([^"]+)".*/\1/'
+        )
+        wget https://github.com/aquasecurity/trivy/releases/download/v${VERSION}/trivy_${VERSION}_Linux-64bit.tar.gz
+        tar zxvf trivy_${VERSION}_Linux-64bit.tar.gz
+        sudo mv trivy /usr/local/bin
+    - name: Clear trivy cache
+      run: trivy --clear-cache
+    - name: Build Prestashop Docker image
+      run: |
+        cd images/${{ matrix.version }}/${{ matrix.tag }}
+        pwd 
+        docker build -t ${{ matrix.image }}:${{ matrix.version }}-${{ matrix.tag }} --no-cache .
+        docker images
+    # - name: Scan Docker image for unkown/low/medium vulnerabilities
+    #   run: trivy --exit-code 0 --severity UNKNOWN,LOW,MEDIUM ${{ matrix.image }}:${{ matrix.version }}-${{ matrix.tag }}
+    # - name: Scan Docker image for high/critical vulnerabilities
+    #   run: trivy --exit-code 0 --severity HIGH,CRITICAL ${{ matrix.image }}:${{ matrix.version }}-${{ matrix.tag }}
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: '${{ matrix.image }}:${{ matrix.version }}-${{ matrix.tag }}'
+        format: 'template'
+        template: '@/contrib/sarif.tpl'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v1
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+    - name: Check dockle
+      run: |
+        dockle ${{ matrix.image }}:${{ matrix.version }}-${{ matrix.tag }} | tee -a dockle.out;
+        # test $(cat dockle.out | grep -e FATAL -e WARN | wc -l) -eq 0
