@@ -31,7 +31,7 @@ jobs:
     steps:
     - name: Checkout source code
       uses: actions/checkout@v2
-    # - setup_remote_docker
+    - setup_remote_docker
     - name: Login to DockerHub
       uses: docker/login-action@v1
       with:
@@ -55,8 +55,7 @@ jobs:
         tar zxvf trivy_${VERSION}_Linux-64bit.tar.gz
         sudo mv trivy /usr/local/bin
     - name: Clear trivy cache
-      run: |
-        trivy --clear-cache
+      run: trivy --clear-cache
     - name: Build Prestashop Docker image
       run: |
         cd images/<< parameters.version >>/<< parameters.tag >>
