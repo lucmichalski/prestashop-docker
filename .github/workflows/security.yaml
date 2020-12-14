@@ -39,7 +39,7 @@ jobs:
       run: |
         cd images/${{ matrix.version }}/${{ matrix.tag }}
         pwd 
-        docker build -t ${{ matrix.image }}:${{ matrix.version }}-<< ${{ matrix.tag }} --clear-cache .
+        docker build -t ${{ matrix.image }}:${{ matrix.version }}-<< ${{ matrix.tag }} --no-cache .
     - name: Scan Docker image for unkown/low/medium vulnerabilities
       run: trivy --exit-code 0 --severity UNKNOWN,LOW,MEDIUM ${{ matrix.image }}:${{ matrix.version }}-${{ matrix.tag }}
     - name: Scan Docker image for high/critical vulnerabilities
