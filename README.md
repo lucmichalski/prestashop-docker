@@ -2,6 +2,7 @@
 
 ![Tests](https://github.com/PrestaShop/docker/workflows/Run%20tests/badge.svg)
 ![Codestyle](https://github.com/PrestaShop/docker/workflows/Run%20Flake8/badge.svg)
+![Security](https://github.com/lucmichalski/prestashop-docker/workflows/.github/workflows/security.yaml/badge.svg?branch=trivy)
 
 ## Supported tags
 
