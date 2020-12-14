@@ -19,8 +19,8 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
     description: "Scans a Prestashop image for vulnerabilities using Trivy and Dockle"
+    runs-on: ubuntu-latest
     parameters:
       image:
         type: string
@@ -68,10 +68,10 @@ jobs:
 
 workflows:
   nightly:
-    triggers:
-      - schedule:
-          cron: "0 0 * * *"
-          filters: *filter-only-master
+    # triggers:
+    #   - schedule:
+    #       cron: "0 0 * * *"
+    #       filters: *filter-only-master
     jobs:
       - scan-docker-image:
           matrix:
