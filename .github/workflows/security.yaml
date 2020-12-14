@@ -54,9 +54,10 @@ jobs:
         wget https://github.com/aquasecurity/trivy/releases/download/v${VERSION}/trivy_${VERSION}_Linux-64bit.tar.gz
         tar zxvf trivy_${VERSION}_Linux-64bit.tar.gz
         sudo mv trivy /usr/local/bin
-   -  name: Clear trivy cache
-      run: trivy --clear-cache
-   -  name: Build Prestashop Docker image
+    - name: Clear trivy cache
+      run: |
+        trivy --clear-cache
+    - name: Build Prestashop Docker image
       run: |
         cd images/<< parameters.version >>/<< parameters.tag >>
         docker build -t << parameters.image >>:<< parameters.version >>-<< parameters.tag >> --clear-cache .
