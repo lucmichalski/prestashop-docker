@@ -1,11 +1,4 @@
-# https://help.github.com/ja/actions/reference/workflow-syntax-for-github-actions
-name: Scans a Prestashop image for vulnerabilities using Trivy and Dockle
-
-aliases:
-  # Workflow filters
-  - &filter-only-master
-    branches:
-      only: trivy
+name: "Security"
 
 on:
   push:
@@ -28,6 +21,11 @@ jobs:
         type: string
       tag:
         type: string
+    strategy:
+      matrix:
+        image: [lucmichalski/Prestashop]
+        version: ["1.7.6.8", "1.7.6.9", "1.7.7.0-rc.1", "1.7.7.0", "nightly"]
+        tag: ["5.6-apache", "5.6-fpm", "7.1-apache", "7.1-fpm", "7.2-apache", "7.2-fpm"]
     steps:
     - name: Checkout source code
       uses: actions/checkout@v2
@@ -55,28 +53,13 @@ jobs:
       run: trivy --clear-cache
     - name: Build Prestashop Docker image
       run: |
-        cd images/<< parameters.version >>/<< parameters.tag >>
-        docker build -t << parameters.image >>:<< parameters.version >>-<< parameters.tag >> --clear-cache .
+        cd images/${{ matrix.version }}/${{ matrix.tag }}
+        docker build -t ${{ matrix.image }}:${{ matrix.version }}-<< ${{ matrix.tag }} --clear-cache .
     - name: Scan Docker image for unkown/low/medium vulnerabilities
-      run: trivy --exit-code 0 --severity UNKNOWN,LOW,MEDIUM << parameters.image >>:<< parameters.tag >>
+      run: trivy --exit-code 0 --severity UNKNOWN,LOW,MEDIUM ${{ matrix.image }}:${{ matrix.version }}-${{ matrix.tag }}
     - name: Scan Docker image for high/critical vulnerabilities
-      run: trivy --exit-code 1 --severity HIGH,CRITICAL << parameters.image >>:<< parameters.tag >>
+      run: trivy --exit-code 1 --severity HIGH,CRITICAL ${{ matrix.image }}:${{ matrix.version }}-${{ matrix.tag }}
     - name: Check dockle
       run: |
         dockle << parameters.image >>:<< parameters.version >>-<< parameters.tag >> | tee -a dockle.out;
         test $(cat dockle.out | grep -e FATAL -e WARN | wc -l) -eq 0
-
-workflows:
-  nightly:
-    # triggers:
-    #   - schedule:
-    #       cron: "0 0 * * *"
-    #       filters: *filter-only-master
-    jobs:
-      - scan-docker-image:
-          matrix:
-            parameters:
-              image: [lucmichalski/Prestashop]
-              version: ["1.7.6.8", "1.7.6.9", "1.7.7.0-rc.1", "1.7.7.0", "nightly"]
-              tag: ["5.6-apache", "5.6-fpm", "7.1-apache", "7.1-fpm", "7.2-apache", "7.2-fpm"]
-
