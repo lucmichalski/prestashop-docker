@@ -1,4 +1,4 @@
-name: "Run Security"
+name: "Run Docker Security"
 
 on: [push, pull_request]
 
