@@ -73,8 +73,8 @@ jobs:
     - run:
         name: Check dockle
         command: |
-        dockle << parameters.image >>:<< parameters.version >>-<< parameters.tag >> | tee -a dockle.out;
-        test $(cat dockle.out | grep -e FATAL -e WARN | wc -l) -eq 0
+          dockle << parameters.image >>:<< parameters.version >>-<< parameters.tag >> | tee -a dockle.out;
+          test $(cat dockle.out | grep -e FATAL -e WARN | wc -l) -eq 0
     - save_cache:
         key: vulnerability-db
         paths:
