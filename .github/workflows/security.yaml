@@ -5,15 +5,15 @@ aliases:
   # Workflow filters
   - &filter-only-master
     branches:
-      only: master
+      only: trivy
 
 on:
   push:
-    branches: [ master ]
+    branches: [ trivy ]
     paths:
     - 'images/**'
   pull_request:
-    branches: [ master ]
+    branches: [ trivy ]
     paths:
     - 'images/**'
 
