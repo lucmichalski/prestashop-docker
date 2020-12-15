@@ -23,15 +23,15 @@ jobs:
           find . -type d -maxdepth 2 
           export IMAGES_LIST=$(find . -maxdepth 2 -type d -exec sh -c "echo {} | sed -e 's/\//\-/2' -e 's/\.\//lucmichalski\/docker-prestashop\:/g'" \;)
           echo "$IMAGES_LIST"
-          # Escape newlines (replace \n with %0A)
+          IMAGES_LIST_ARRAY=(${IMAGES_LIST// / })
           JSON="{\"images\":["
-          for path in "${IMAGES_LIST[@]}"
+          for DOCKERFILE_PATH in "${IMAGES_LIST_ARRAY[@]}"
           do
-            JSONline="\"$path\","
+            JSONline="\"$DOCKERFILE_PATH\","
             JSON="$JSON$JSONline"
           done
           echo $JSON
-          echo "::set-output name=matrix::$( echo "$JSON" | sed ':a;N;$!ba;s/\n/%0A/g' )"
+          echo "::set-output name=matrix::$( echo "$JSON" )"
   build:
     needs: generate-matrix
     runs-on: ubuntu-latest
