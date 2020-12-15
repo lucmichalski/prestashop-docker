@@ -20,8 +20,8 @@ jobs:
           cd images
           pwd 
           ls -l
-          find . -type d -maxdepth 2 
-          export IMAGES_LIST=$(find . -maxdepth 2 -type d -exec sh -c "echo {} | sed -e 's/\//\-/2' -e 's/\.\//lucmichalski\/docker-prestashop\:/g'" \;)
+          find . -type d -mindepth 2 
+          export IMAGES_LIST=$(find . -mindepth 2 -type d -exec sh -c "echo {} | sed -e 's/\//\-/2' -e 's/\.\//lucmichalski\/docker-prestashop\:/g'" \;)
           echo "$IMAGES_LIST"
           IMAGES_LIST_ARRAY=(${IMAGES_LIST// / })
           JSON="{\"images\":["
@@ -77,7 +77,7 @@ jobs:
     - name: Build Prestashop Docker image
       run: |
         echo "image: ${{ matrix.images }}"
-        DOCKERFILE_PATH=$(echo "${{ matrix.images }}" | sed -e 's/lucmichalski\/prestashop\-docker\://' -e 's/\-/\//1')
+        DOCKERFILE_PATH=$(echo "${{ matrix.DOCKERFILE_PATH }}" | sed -e 's/lucmichalski\/prestashop\-docker\://' -e 's/\-/\//1')
         echo "path: ${DOCKERFILE_PATH}"
         cd ${DOCKERFILE_PATH}
         pwd 
