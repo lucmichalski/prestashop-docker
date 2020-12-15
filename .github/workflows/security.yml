@@ -18,7 +18,9 @@ jobs:
         run: |
           pwd 
           cd images
-          export IMAGES_LIST=$(find . -type d -d 2 -exec sh -c "echo {} | sed -e 's/\//\-/2' -e 's/\.\//lucmichalski\/docker-prestashop\:/g'" \;)
+          pwd 
+          ls -l
+          export IMAGES_LIST=$("find . -type d -d 2 -exec sh -c \"echo {} | sed -e 's/\//\-/2' -e 's/\.\//lucmichalski\/docker-prestashop\:/g'\" \;")
           echo "$IMAGES_LIST"
           # Escape newlines (replace \n with %0A)
           echo "::set-output name=image::$( echo "$IMAGES_LIST" | sed ':a;N;$!ba;s/\n/%0A/g' )"
