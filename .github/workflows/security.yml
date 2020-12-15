@@ -60,7 +60,9 @@ jobs:
       run: trivy --clear-cache
     - name: Build Prestashop Docker image
       run: |
+        echo "image: ${{ matrix.image }}"
         DOCKERFILE_PATH=$(echo "${{ matrix.image }}" | sed -e 's/lucmichalski\/prestashop\-docker\://' -e 's/\-/\//1')
+        echo "path: ${DOCKERFILE_PATH}"
         cd ${DOCKERFILE_PATH}
         pwd 
         docker build -t ${{ matrix.image }} --no-cache .
