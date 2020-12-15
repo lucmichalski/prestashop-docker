@@ -80,7 +80,7 @@ jobs:
         echo "${{ matrix.images }}" | sed -e 's/lucmichalski\/docker-prestashop\://' -e 's/\-/\//1'
         DOCKERFILE_PATH=$(echo "${{ matrix.images }}" | sed -e 's/lucmichalski\/docker-prestashop\://' -e 's/\-/\//1')
         echo "path: ${DOCKERFILE_PATH}"
-        cd ${DOCKERFILE_PATH}
+        cd ./images/${DOCKERFILE_PATH}
         pwd 
         docker build -t ${{ matrix.images }} --no-cache .
         docker images
