@@ -27,14 +27,14 @@ jobs:
           JSON="{\"images\":["
           for DOCKERFILE_PATH in "${IMAGES_LIST_ARRAY[@]}"
           do
-            if [ $DOCKERFILE_PATH != "." ]
+            if [[ $DOCKERFILE_PATH != "." ]]; then
               JSONline="\"$DOCKERFILE_PATH\","
               JSON="$JSON$JSONline"
             fi
           done
           # Remove last "," and add closing brackets
           if [[ $JSON == *, ]]; then
-          JSON="${JSON%?}"
+            JSON="${JSON%?}"
           fi
           JSON="$JSON]}"
           echo $JSON
