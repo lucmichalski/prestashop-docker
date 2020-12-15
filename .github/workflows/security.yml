@@ -43,7 +43,7 @@ jobs:
     needs: generate-matrix
     runs-on: ubuntu-latest
     strategy:
-      matrix: ${{needs.generate-matrix.outputs.matrix}}
+      matrix: ${{fromJson(needs.generate-matrix.outputs.matrix)}}
       fail-fast: false
     steps:
     - name: Checkout source code
