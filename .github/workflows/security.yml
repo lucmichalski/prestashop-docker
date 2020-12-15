@@ -26,6 +26,7 @@ jobs:
           # Escape newlines (replace \n with %0A)
           echo "::set-output name=image::$( echo "$IMAGES_LIST" | sed ':a;N;$!ba;s/\n/%0A/g' )"
   build:
+    needs: generate-matrix
     runs-on: ubuntu-latest
     strategy:
       matrix: ${{needs.generate-matrix.outputs.matrix}}
