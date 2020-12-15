@@ -100,6 +100,7 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         image: ${{ matrix.images }}
         severity: HIGH,CRITICAL
+        issue_title: "Security Alert ${{ matrix.images }}"
     # - name: Upload Trivy scan results to GitHub Security tab
     #   uses: github/codeql-action/upload-sarif@v1
     #   with:
