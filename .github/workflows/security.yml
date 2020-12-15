@@ -20,6 +20,7 @@ jobs:
           cd images
           pwd 
           ls -l
+          find . -type d -d 2 
           export IMAGES_LIST=$("find . -type d -d 2 -exec sh -c \"echo {} | sed -e 's/\//\-/2' -e 's/\.\//lucmichalski\/docker-prestashop\:/g'\" \;")
           echo "$IMAGES_LIST"
           # Escape newlines (replace \n with %0A)
