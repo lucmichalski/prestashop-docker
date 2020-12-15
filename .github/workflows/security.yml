@@ -4,6 +4,9 @@ on: [push, pull_request]
   # schedule:
   #   - cron: '0 9 * * *'
 
+env:
+  IMAGES: $(cd images && find . -type d -d 2 -exec sh -c "echo {} | sed -e 's/\//\-/2' -e 's/\.\//lucmichalski\/prestashop-docker\:/g'" \;')
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -11,8 +14,8 @@ jobs:
       fail-fast: false
       matrix:
         image: ["lucmichalski/docker-prestashop"]
-        version: ["1.7.6.8", "1.7.6.9", "1.7.7.0-rc.1", "1.7.7.0", "nightly"]
-        tag: ["5.6-apache", "5.6-fpm", "7.1-apache", "7.1-fpm", "7.2-apache", "7.2-fpm"]
+        # version: ["1.7.6.8", "1.7.6.9", "1.7.7.0-rc.1", "1.7.7.0", "nightly"]
+        tag: $IMAGES
     steps:
     - name: Checkout source code
       uses: actions/checkout@v2
@@ -68,6 +71,14 @@ jobs:
     #   uses: github/codeql-action/upload-sarif@v1
     #   with:
     #     sarif_file: 'trivy-results.sarif'
+    # - name: Slack Notification
+    #   uses: lazy-actions/slatify@master
+    #   if: always()
+    #   with:
+    #     type: ${{ job.status }}
+    #     job_name: '*Security*'
+    #     channel: '#devops-Security'
+    #     url: ${{ secrets.SLACK_WEBHOOK }}
     - name: Check dockle
       run: |
         dockle ${{ matrix.image }}:${{ matrix.version }}-${{ matrix.tag }} | tee -a dockle.out;
