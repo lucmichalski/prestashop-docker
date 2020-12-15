@@ -77,8 +77,8 @@ jobs:
     - name: Build Prestashop Docker image
       run: |
         echo "image: ${{ matrix.images }}"
-        echo "${{ matrix.DOCKERFILE_PATH }}" | sed -e 's/lucmichalski\/docker-prestashop\://' -e 's/\-/\//1'
-        DOCKERFILE_PATH=$(echo "${{ matrix.DOCKERFILE_PATH }}" | sed -e 's/lucmichalski\/docker-prestashop\://' -e 's/\-/\//1')
+        echo "${{ matrix.images }}" | sed -e 's/lucmichalski\/docker-prestashop\://' -e 's/\-/\//1'
+        DOCKERFILE_PATH=$(echo "${{ matrix.images }}" | sed -e 's/lucmichalski\/docker-prestashop\://' -e 's/\-/\//1')
         echo "path: ${DOCKERFILE_PATH}"
         cd ${DOCKERFILE_PATH}
         pwd 
