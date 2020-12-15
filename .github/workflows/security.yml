@@ -95,7 +95,7 @@ jobs:
         format: 'template'
         template: '@/contrib/sarif.tpl'
         output: 'trivy-results.sarif'
-    - uses: lucmichalski/gitrivy@fix-octokit
+    - uses: lucmichalski/gitrivy@v2.0.1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         image: ${{ matrix.images }}
