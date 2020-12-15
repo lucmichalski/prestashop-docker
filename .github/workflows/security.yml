@@ -27,9 +27,16 @@ jobs:
           JSON="{\"images\":["
           for DOCKERFILE_PATH in "${IMAGES_LIST_ARRAY[@]}"
           do
-            JSONline="\"$DOCKERFILE_PATH\","
-            JSON="$JSON$JSONline"
+            if [ $DOCKERFILE_PATH != "." ]
+              JSONline="\"$DOCKERFILE_PATH\","
+              JSON="$JSON$JSONline"
+            fi
           done
+          # Remove last "," and add closing brackets
+          if [[ $JSON == *, ]]; then
+          JSON="${JSON%?}"
+          fi
+          JSON="$JSON]}"
           echo $JSON
           echo "::set-output name=matrix::$( echo "$JSON" )"
   build:
