@@ -24,7 +24,14 @@ jobs:
           export IMAGES_LIST=$(find . -maxdepth 2 -type d -exec sh -c "echo {} | sed -e 's/\//\-/2' -e 's/\.\//lucmichalski\/docker-prestashop\:/g'" \;)
           echo "$IMAGES_LIST"
           # Escape newlines (replace \n with %0A)
-          echo "::set-output name=image::$( echo "$IMAGES_LIST" | sed ':a;N;$!ba;s/\n/%0A/g' )"
+          JSON="{\"images\":["
+          for path in "${IMAGES_LIST[@]}"
+          do
+            JSONline="\"$path\","
+            JSON="$JSON$JSONline"
+          done
+          echo $JSON
+          echo "::set-output name=matrix::$( echo "$JSON" | sed ':a;N;$!ba;s/\n/%0A/g' )"
   build:
     needs: generate-matrix
     runs-on: ubuntu-latest
@@ -62,12 +69,12 @@ jobs:
       run: trivy --clear-cache
     - name: Build Prestashop Docker image
       run: |
-        echo "image: ${{ matrix.image }}"
-        DOCKERFILE_PATH=$(echo "${{ matrix.image }}" | sed -e 's/lucmichalski\/prestashop\-docker\://' -e 's/\-/\//1')
+        echo "image: ${{ matrix.images }}"
+        DOCKERFILE_PATH=$(echo "${{ matrix.images }}" | sed -e 's/lucmichalski\/prestashop\-docker\://' -e 's/\-/\//1')
         echo "path: ${DOCKERFILE_PATH}"
         cd ${DOCKERFILE_PATH}
         pwd 
-        docker build -t ${{ matrix.image }} --no-cache .
+        docker build -t ${{ matrix.images }} --no-cache .
         docker images
     # - name: Scan Docker image for unkown/low/medium vulnerabilities
     #   run: trivy --exit-code 0 --severity UNKNOWN,LOW,MEDIUM ${{ matrix.image }}:${{ matrix.version }}-${{ matrix.tag }}
@@ -76,14 +83,14 @@ jobs:
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
       with:
-        image-ref: '${{ matrix.image }}'
+        image-ref: '${{ matrix.images }}'
         format: 'template'
         template: '@/contrib/sarif.tpl'
         output: 'trivy-results.sarif'
     - uses: homoluctus/gitrivy@v2
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        image: ${{ matrix.image }}:${{ matrix.version }}-${{ matrix.tag }}
+        image: ${{ matrix.images }}
         severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
     # - name: Upload Trivy scan results to GitHub Security tab
     #   uses: github/codeql-action/upload-sarif@v1
@@ -99,5 +106,5 @@ jobs:
     #     url: ${{ secrets.SLACK_WEBHOOK }}
     - name: Check dockle
       run: |
-        dockle ${{ matrix.image }} | tee -a dockle.out;
+        dockle ${{ matrix.images }} | tee -a dockle.out;
         # test $(cat dockle.out | grep -e FATAL -e WARN | wc -l) -eq 0
