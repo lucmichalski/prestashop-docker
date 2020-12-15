@@ -95,11 +95,11 @@ jobs:
         format: 'template'
         template: '@/contrib/sarif.tpl'
         output: 'trivy-results.sarif'
-    - uses: lucmichalski/gitrivy@fix-octokit
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        image: ${{ matrix.images }}
-        severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+    # - uses: lucmichalski/gitrivy@fix-octokit
+    #   with:
+    #     token: ${{ secrets.GITHUB_TOKEN }}
+    #     image: ${{ matrix.images }}
+    #     severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
     # - name: Upload Trivy scan results to GitHub Security tab
     #   uses: github/codeql-action/upload-sarif@v1
     #   with:
